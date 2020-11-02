@@ -80,6 +80,31 @@ func TestKeeper_AddTask(t *testing.T) {
 	assert.Equal(0, len(k.(*keeper).dispatcher.taskQueue))
 }
 
+func TestKeeper_UnProcessedTaskSize(t *testing.T) {
+	assert := assert.New(t)
+
+	empty, err := NewAsyncTask(WithQueueSizeOption(10), WithWorkerSizeOption(1), WithTimeoutOption(5*time.Second))
+	assert.NoError(err)
+
+	exist, err := NewAsyncTask(WithQueueSizeOption(200), WithWorkerSizeOption(1), WithTimeoutOption(5*time.Second))
+	assert.NoError(err)
+	for i := 0; i < 10; i++ {
+		exist.AddTask(context.Background(), &mockTask{})
+	}
+
+	tests := map[string]struct {
+		dispatcher Keeper
+		count      int
+	}{
+		"empty": {empty, 0},
+		"exist": {exist, 10},
+	}
+
+	for _, t := range tests {
+		assert.Equal(t.count, t.dispatcher.UnProcessedTaskSize())
+	}
+}
+
 // go test github.com/gjbae1212/go-module/async_task -bench=.
 func BenchmarkKeeper_AddTask(b *testing.B) {
 	ctx := context.Background()

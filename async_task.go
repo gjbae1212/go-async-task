@@ -18,6 +18,7 @@ type (
 	// External interface
 	Keeper interface {
 		AddTask(ctx context.Context, task Task) error
+		UnProcessedTaskSize() int
 	}
 
 	// Internal interface
@@ -68,6 +69,11 @@ func (k *keeper) AddTask(ctx context.Context, task Task) error {
 		return fmt.Errorf("[err] AddTask timeout")
 	}
 	return nil
+}
+
+// UnProcessedTaskSize returns unprocessed task size.
+func (k *keeper) UnProcessedTaskSize() int {
+	return len(k.dispatcher.taskQueue)
 }
 
 // newDispatcher creates a dispatcher object
